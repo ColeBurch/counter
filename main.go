@@ -1,7 +1,18 @@
 package main
 
-import "fmt"
+import (
+	"bytes"
+	"fmt"
+	"os"
+)
 
 func main() {
-	fmt.Println("Hello Counter")
+	data, _ := os.ReadFile("words.txt")
+	wordCount := CountWords(data)
+	fmt.Println("Word Count: " + fmt.Sprint(wordCount))
+}
+
+func CountWords(data []byte) int {
+	words := bytes.Fields(data)
+	return len(words)
 }
