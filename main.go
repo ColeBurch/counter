@@ -1,9 +1,7 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"io"
 	"log"
 	"os"
 )
@@ -12,55 +10,34 @@ func main() {
 	log.SetFlags(0)
 
 	filenames := os.Args[1:]
-	totalWordCount := 0
+	totals := Counts{}
 	didError := false
 
 	for _, filename := range filenames {
-		wordcount, err := CountWordsInFile(filename)
+		counts, err := CountFile(filename)
 		if err != nil {
 			didError = true
 			fmt.Printf("%s: %s\n", filename, err)
 			continue
 		}
-		totalWordCount += wordcount
-		fmt.Printf("%s: %d\n", filename, wordcount)
+		totals = Counts{
+			Lines: totals.Lines + counts.Lines,
+			Words: totals.Words + counts.Words,
+			Bytes: totals.Bytes + counts.Bytes,
+		}
+		fmt.Printf("%s: %d %d %d\n", filename, counts.Lines, counts.Words, counts.Bytes)
 	}
 
 	if len(filenames) == 0 {
-		wordCount := CountWords(os.Stdin)
-		fmt.Println(wordCount)
+		counts := GetCounts(os.Stdin)
+		fmt.Println(counts.Lines, counts.Words, counts.Bytes)
 	}
 
 	if len(filenames) > 0 {
-		fmt.Printf("Total word count: %d\n", totalWordCount)
+		fmt.Printf("Total count: %d %d %d\n", totals.Lines, totals.Words, totals.Bytes)
 	}
 
 	if didError {
 		os.Exit(1)
 	}
-}
-
-func CountWordsInFile(filename string) (int, error) {
-	file, err := os.Open(filename)
-	if err != nil {
-		return 0, fmt.Errorf("open file: %w", err)
-	}
-	defer file.Close()
-
-	wordCount := CountWords(file)
-
-	return wordCount, nil
-}
-
-func CountWords(file io.Reader) int {
-	wordCount := 0
-
-	scanner := bufio.NewScanner(file)
-	scanner.Split(bufio.ScanWords)
-
-	for scanner.Scan() {
-		wordCount++
-	}
-
-	return wordCount
 }
