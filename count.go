@@ -13,6 +13,22 @@ type Counts struct {
 	Bytes int
 }
 
+func (c *Counts) Add(other Counts) {
+	c.Lines += other.Lines
+	c.Words += other.Words
+	c.Bytes += other.Bytes
+}
+
+func (c Counts) Print(w io.Writer, filenames ...string) {
+	fmt.Fprintf(w, "%d %d %d", c.Lines, c.Words, c.Bytes)
+
+	for _, filename := range filenames {
+		fmt.Fprintf(w, " %s", filename)
+	}
+
+	fmt.Fprintf(w, "\n")
+}
+
 func GetCounts(file io.ReadSeeker) Counts {
 	const offsetStart = int64(0)
 

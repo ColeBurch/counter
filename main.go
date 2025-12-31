@@ -20,21 +20,17 @@ func main() {
 			fmt.Printf("%s: %s\n", filename, err)
 			continue
 		}
-		totals = Counts{
-			Lines: totals.Lines + counts.Lines,
-			Words: totals.Words + counts.Words,
-			Bytes: totals.Bytes + counts.Bytes,
-		}
-		fmt.Printf("%s: %d %d %d\n", filename, counts.Lines, counts.Words, counts.Bytes)
+		totals.Add(counts)
+		counts.Print(os.Stdout, filename)
 	}
 
 	if len(filenames) == 0 {
 		counts := GetCounts(os.Stdin)
-		fmt.Println(counts.Lines, counts.Words, counts.Bytes)
+		counts.Print(os.Stdout)
 	}
 
 	if len(filenames) > 0 {
-		fmt.Printf("Total count: %d %d %d\n", totals.Lines, totals.Words, totals.Bytes)
+		totals.Print(os.Stdout, "total")
 	}
 
 	if didError {
