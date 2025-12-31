@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
+	"strings"
+	"unicode"
 )
 
 type Counts struct {
@@ -19,30 +22,55 @@ func (c *Counts) Add(other Counts) {
 	c.Bytes += other.Bytes
 }
 
-func (c Counts) Print(w io.Writer, filenames ...string) {
-	fmt.Fprintf(w, "%d %d %d", c.Lines, c.Words, c.Bytes)
+func (c Counts) Print(w io.Writer, opts DisplayOptions, suffixes ...string) {
+	xs := []string{}
 
-	for _, filename := range filenames {
-		fmt.Fprintf(w, " %s", filename)
+	if opts.ShouldShowLines() {
+		xs = append(xs, strconv.Itoa(c.Lines))
 	}
 
-	fmt.Fprintf(w, "\n")
+	if opts.ShouldShowWords() {
+		xs = append(xs, strconv.Itoa(c.Words))
+	}
+
+	if opts.ShouldShowBytes() {
+		xs = append(xs, strconv.Itoa(c.Bytes))
+	}
+
+	xs = append(xs, suffixes...)
+
+	line := strings.Join(xs, " ")
+
+	fmt.Println(line)
 }
 
-func GetCounts(file io.ReadSeeker) Counts {
-	const offsetStart = int64(0)
+func GetCounts(file io.Reader) Counts {
+	res := Counts{}
 
-	lineCount := CountLines(file)
-	file.Seek(offsetStart, io.SeekStart)
-	wordCount := CountWords(file)
-	file.Seek(offsetStart, io.SeekStart)
-	byteCount := CountBytes(file)
+	isInsideWord := false
 
-	return Counts{
-		Lines: lineCount,
-		Words: wordCount,
-		Bytes: byteCount,
+	reader := bufio.NewReader(file)
+
+	for {
+		r, size, err := reader.ReadRune()
+		if err != nil {
+			break
+		}
+		res.Bytes += size
+		if r == '\n' {
+			res.Lines++
+		}
+
+		isSpace := unicode.IsSpace(r)
+
+		if !isSpace && !isInsideWord {
+			res.Words++
+		}
+
+		isInsideWord = !isSpace
 	}
+
+	return res
 }
 
 func CountFile(filename string) (Counts, error) {
