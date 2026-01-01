@@ -104,3 +104,25 @@ func TestGetCounts(t *testing.T) {
 		})
 	}
 }
+
+var benchData = []string{
+	"This is a test string\nthat spans\nmultiple lines",
+	"one two three four\n five six\n seven eight nine\n \n ten",
+	"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, nisl eget aliquam aliquet, nunc nisl aliquet nisl, eget aliquet nisl nisl eget nisl. Sed euismod, nisl eget aliquam aliquet, nunc nisl aliquet nisl, eget aliquet nisl nisl eget nisl.",
+}
+
+func BenchmarkGetCounts(b *testing.B) {
+	for i := range b.N {
+		data := benchData[i%len(benchData)]
+		reader := strings.NewReader(data)
+		counter.GetCounts(reader)
+	}
+}
+
+func BenchmarkGetCountsSinglePass(b *testing.B) {
+	for i := range b.N {
+		data := benchData[i%len(benchData)]
+		reader := strings.NewReader(data)
+		counter.GetCountsSinglePass(reader)
+	}
+}

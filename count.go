@@ -68,6 +68,44 @@ func (c Counts) Print(w io.Writer, opts DisplayOptions, suffixes ...string) {
 }
 
 func GetCounts(file io.Reader) Counts {
+	bytesReader, bytesWriter := io.Pipe()
+	wordsReader, wordsWriter := io.Pipe()
+	linesReader, linesWriter := io.Pipe()
+
+	w := io.MultiWriter(bytesWriter, wordsWriter, linesWriter)
+
+	chBytes := make(chan int)
+	chWords := make(chan int)
+	chLines := make(chan int)
+
+	go func() {
+		defer close(chBytes)
+		chBytes <- CountBytes(bytesReader)
+	}()
+
+	go func() {
+		defer close(chWords)
+		chWords <- CountWords(wordsReader)
+	}()
+
+	go func() {
+		defer close(chLines)
+		chLines <- CountLines(linesReader)
+	}()
+
+	io.Copy(w, file)
+	bytesWriter.Close()
+	wordsWriter.Close()
+	linesWriter.Close()
+
+	return Counts{
+		Bytes: <-chBytes,
+		Words: <-chWords,
+		Lines: <-chLines,
+	}
+}
+
+func GetCountsSinglePass(file io.Reader) Counts {
 	res := Counts{}
 
 	isInsideWord := false
@@ -114,7 +152,7 @@ func CountFiles(filenames []string) (<-chan FileCountsResult, <-chan error) {
 			}
 			defer file.Close()
 
-			counts := GetCounts(file)
+			counts := GetCountsSinglePass(file)
 			ch <- FileCountsResult{filename, counts}
 		}()
 	}
