@@ -80,15 +80,29 @@ func main() {
 		opts.Headers = false
 	}
 
-	for _, filename := range filenames {
-		counts, err := CountFile(filename)
-		if err != nil {
+	ch, errCh := CountFiles(filenames)
+
+	for {
+		select {
+		case res, open := <-ch:
+			if !open {
+				ch = nil
+				break
+			}
+			totals.Add(res.Counts)
+			res.Counts.Print(wr, opts, res.Filename)
+		case err, open := <-errCh:
+			if !open {
+				errCh = nil
+				break
+			}
 			didError = true
-			fmt.Printf("%s: %s\n", filename, err)
-			continue
+			fmt.Printf("%s: %s\n", err, err.Error())
 		}
-		totals.Add(counts)
-		counts.Print(wr, opts, filename)
+
+		if ch == nil || errCh == nil {
+			break
+		}
 	}
 
 	if len(filenames) == 0 {

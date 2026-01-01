@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"unicode"
 )
 
@@ -14,6 +15,11 @@ type Counts struct {
 	Lines int
 	Words int
 	Bytes int
+}
+
+type FileCountsResult struct {
+	Filename string
+	Counts   Counts
 }
 
 func (c *Counts) Add(other Counts) {
@@ -90,15 +96,36 @@ func GetCounts(file io.Reader) Counts {
 	return res
 }
 
-func CountFile(filename string) (Counts, error) {
-	file, err := os.Open(filename)
-	if err != nil {
-		return Counts{}, fmt.Errorf("open file: %w", err)
-	}
-	defer file.Close()
+func CountFiles(filenames []string) (<-chan FileCountsResult, <-chan error) {
+	ch := make(chan FileCountsResult)
+	errCh := make(chan error)
 
-	counts := GetCounts(file)
-	return counts, nil
+	wg := sync.WaitGroup{}
+	wg.Add(len(filenames))
+
+	for _, filename := range filenames {
+		go func() {
+			defer wg.Done()
+
+			file, err := os.Open(filename)
+			if err != nil {
+				errCh <- err
+				return
+			}
+			defer file.Close()
+
+			counts := GetCounts(file)
+			ch <- FileCountsResult{filename, counts}
+		}()
+	}
+
+	go func() {
+		wg.Wait()
+		close(ch)
+		close(errCh)
+	}()
+
+	return ch, errCh
 }
 
 func CountWords(file io.Reader) int {
