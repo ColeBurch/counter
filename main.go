@@ -97,7 +97,7 @@ func main() {
 				break
 			}
 			didError = true
-			fmt.Printf("%s: %s\n", err, err.Error())
+			fmt.Printf("%s\n", err)
 		}
 
 		if ch == nil || errCh == nil {
