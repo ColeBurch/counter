@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"testing"
+
+	"github.com/ColeBurch/counter/test/assert"
 )
 
 func TestMultiFile(t *testing.T) {
@@ -46,11 +48,7 @@ func TestMultiFile(t *testing.T) {
 		fileC.Name(),
 		"total")
 
-	res := stdout.String()
-	if res != expectedOut {
-		t.Errorf("unexpected output: got %s, expected %s", res, expectedOut)
-		t.Fail()
-	}
+	assert.Equal(t, expectedOut, stdout.String())
 }
 
 func CreateFile(content string) (*os.File, error) {

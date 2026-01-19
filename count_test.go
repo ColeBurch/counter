@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	counter "github.com/ColeBurch/counter"
+	"github.com/ColeBurch/counter/test/assert"
 )
 
 func TestCountWords(t *testing.T) {
@@ -24,10 +25,7 @@ func TestCountWords(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			reader := strings.NewReader(tc.input)
 			result := counter.CountWords(reader)
-			if result != tc.expected {
-				t.Logf("Expected %d, but got %d", tc.expected, result)
-				t.Fail()
-			}
+			assert.Equal(t, tc.expected, result)
 		})
 	}
 }
@@ -48,10 +46,7 @@ func TestCountLines(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			reader := strings.NewReader(tc.input)
 			result := counter.CountLines(reader)
-			if result != tc.expected {
-				t.Logf("Expected %d, but got %d", tc.expected, result)
-				t.Fail()
-			}
+			assert.Equal(t, tc.expected, result)
 		})
 	}
 }
@@ -72,10 +67,7 @@ func TestCountBytes(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			reader := strings.NewReader(tc.input)
 			result := counter.CountBytes(reader)
-			if result != tc.expected {
-				t.Logf("Expected %d, but got %d", tc.expected, result)
-				t.Fail()
-			}
+			assert.Equal(t, tc.expected, result)
 		})
 	}
 }
@@ -97,10 +89,7 @@ func TestGetCounts(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			reader := strings.NewReader(tc.input)
 			result := counter.GetCounts(reader)
-			if result != tc.expected {
-				t.Logf("Expected %v, but got %v", tc.expected, result)
-				t.Fail()
-			}
+			assert.Equal(t, tc.expected, result)
 		})
 	}
 }

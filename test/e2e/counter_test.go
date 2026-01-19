@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/ColeBurch/counter/test/assert"
 )
 
 func GetCommand(args ...string) (*exec.Cmd, error) {
@@ -39,10 +41,7 @@ func TestStdin(t *testing.T) {
 
 	expected := " 1 3 14\n"
 
-	if expected != output.String() {
-		t.Errorf("unexpected output: got %q, want %q", output.String(), expected)
-		t.Fail()
-	}
+	assert.Equal(t, expected, output.String())
 }
 
 func TestSingleFile(t *testing.T) {
@@ -75,10 +74,7 @@ func TestSingleFile(t *testing.T) {
 
 	expected := fmt.Sprintf(" 1 6 25 %s\n 1 6 25 total\n", file.Name())
 
-	if expected != output.String() {
-		t.Errorf("unexpected output: got %q, want %q", output.String(), expected)
-		t.Fail()
-	}
+	assert.Equal(t, expected, output.String())
 }
 
 func TestNoExist(t *testing.T) {
@@ -100,13 +96,6 @@ func TestNoExist(t *testing.T) {
 		t.Fail()
 	}
 
-	if expectedOut != output.String() {
-		t.Errorf("unexpected output: got %q, want %q", output.String(), expectedOut)
-		t.Fail()
-	}
-
-	if expectedErr != stderr.String() {
-		t.Errorf("unexpected error output: got %q, want %q", stderr.String(), expectedErr)
-		t.Fail()
-	}
+	assert.Equal(t, expectedOut, output.String(), "Unexpected output")
+	assert.Equal(t, expectedErr, stderr.String(), "Unexpected error")
 }
