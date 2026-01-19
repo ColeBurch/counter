@@ -1,11 +1,9 @@
 package e2e
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
 	"os"
-	"strings"
 	"testing"
 )
 
@@ -41,47 +39,17 @@ func TestMultiFile(t *testing.T) {
 		t.Fatalf("failed to run command: %v", err)
 	}
 
-	expected := map[string]string{
-		fileA.Name(): fmt.Sprintf(" 1 5 24 %s", fileA.Name()),
-		fileB.Name(): fmt.Sprintf(" 2 3 13 %s", fileB.Name()),
-		fileC.Name(): fmt.Sprintf(" 0 0  0 %s", fileC.Name()),
-		"total":      fmt.Sprintf(" 3 8 37 %s", "total"),
-	}
+	expectedOut := fmt.Sprintf(
+		" 1 5 24 %s\n 2 3 13 %s\n 0 0  0 %s\n 3 8 37 %s\n",
+		fileA.Name(),
+		fileB.Name(),
+		fileC.Name(),
+		"total")
 
-	expectedChecks := len(expected)
-	checks := 0
-	scanner := bufio.NewScanner(stdout)
-	for scanner.Scan() {
-		line := scanner.Text()
-		fields := strings.Fields(line)
-		if len(fields) == 0 {
-			t.Log("Encountered an empty line")
-			t.Fail()
-		}
-
-		filename := fields[len(fields)-1]
-
-		lineExpected, ok := expected[filename]
-		if !ok {
-			t.Errorf("unexpected filename: %s", filename)
-			continue
-		}
-
-		if line != lineExpected {
-			t.Errorf("unexpected output for %s: got %s, expected %s", filename, line, lineExpected)
-			t.Fail()
-		}
-
-		checks++
-	}
-
-	if checks != expectedChecks {
-		t.Errorf("unexpected number of checks: got %d, expected %d", checks, expectedChecks)
+	res := stdout.String()
+	if res != expectedOut {
+		t.Errorf("unexpected output: got %s, expected %s", res, expectedOut)
 		t.Fail()
-	}
-
-	if err := scanner.Err(); err != nil {
-		t.Fatalf("failed to scan stdout: %v", err)
 	}
 }
 

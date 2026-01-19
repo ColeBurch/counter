@@ -82,6 +82,14 @@ func main() {
 
 	ch, errCh := CountFiles(filenames)
 
+	results := make([]FileCountsResult, len(filenames))
+
+	filenameIndex := make(map[string]int, len(filenames))
+
+	for i, filename := range filenames {
+		filenameIndex[filename] = i
+	}
+
 	for {
 		select {
 		case res, open := <-ch:
@@ -89,8 +97,11 @@ func main() {
 				ch = nil
 				break
 			}
-			totals.Add(res.Counts)
-			res.Counts.Print(wr, opts, res.Filename)
+			idx, ok := filenameIndex[res.Filename], true
+			if !ok {
+				continue
+			}
+			results[idx] = res
 		case err, open := <-errCh:
 			if !open {
 				errCh = nil
@@ -103,6 +114,14 @@ func main() {
 		if ch == nil || errCh == nil {
 			break
 		}
+	}
+
+	for _, result := range results {
+		if result.Filename == "" {
+			continue
+		}
+		totals.Add(result.Counts)
+		result.Counts.Print(wr, opts, result.Filename)
 	}
 
 	if len(filenames) == 0 {

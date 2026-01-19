@@ -20,6 +20,7 @@ type Counts struct {
 type FileCountsResult struct {
 	Filename string
 	Counts   Counts
+	idx      int
 }
 
 func (c *Counts) Add(other Counts) {
@@ -141,7 +142,7 @@ func CountFiles(filenames []string) (<-chan FileCountsResult, <-chan error) {
 	wg := sync.WaitGroup{}
 	wg.Add(len(filenames))
 
-	for _, filename := range filenames {
+	for i, filename := range filenames {
 		go func() {
 			defer wg.Done()
 
@@ -153,7 +154,7 @@ func CountFiles(filenames []string) (<-chan FileCountsResult, <-chan error) {
 			defer file.Close()
 
 			counts := GetCountsSinglePass(file)
-			ch <- FileCountsResult{filename, counts}
+			ch <- FileCountsResult{filename, counts, i}
 		}()
 	}
 
